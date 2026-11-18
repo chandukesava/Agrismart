@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgriSmart – Crop Recommendation</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#f1f8e9;margin:0;display:flex;justify-content:center;padding:32px}
+  .card{background:#fff;border-radius:14px;box-shadow:0 4px 18px #0002;padding:28px;max-width:440px;width:100%}
+  h1{color:#2e7d32;margin-top:0} label{display:block;margin:10px 0 4px;font-size:14px;color:#444}
+  input{width:100%;padding:8px;border:1px solid #bbb;border-radius:8px;box-sizing:border-box}
+  button{margin-top:18px;width:100%;padding:12px;background:#2e7d32;color:#fff;border:0;border-radius:8px;font-size:16px;cursor:pointer}
+  #out{margin-top:20px} .bar{background:#c8e6c9;border-radius:6px;margin:6px 0;padding:6px 10px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🌾 AgriSmart</h1>
+  <p>Enter soil &amp; weather conditions to get a crop recommendation.</p>
+  <form id="f">
+    {% for f in features %}
+    <label>{{ f }}</label><input name="{{ f }}" type="number" step="any" required>
+    {% endfor %}
+    <button type="submit">Recommend crop</button>
+  </form>
+  <div id="out"></div>
+</div>
+<script>
+document.getElementById("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData(e.target));
+  const r = await fetch("/api/predict", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const d = await r.json(), out = document.getElementById("out");
+  out.innerHTML = d.error ? d.error :
+    `<h3>Best crop: ${d.best}</h3>` + d.top.map(t=>`<div class="bar">${t.crop} — ${(t.probability*100).toFixed(1)}%</div>`).join("");
+});
+</script>
+</body>
+</html>
